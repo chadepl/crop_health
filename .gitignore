@@ -38,9 +38,14 @@ Thumbs.db
 
 # Images #
 ##########
+*.tif
+*.png
+*.jpeg
+*.jpg
+
 
 venv/
-*.tif
+
 
 
 
