@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 import scipy.misc as sp
 
 SUMMARY = True
-SAVE_NIR = True
+SAVE_NIR = False
 SAVE_RGB = False
 VIEW_NIR = False
 VIEW_RGB = False
 
-imNIR = io.imread("nir_sa.tif", plugin = "tifffile")
+imNIR = io.imread("../imagenes/vuelo1/nir_sa.tif", plugin = "tifffile")
 imNIR = imNIR[:,:,0:3]
-imRGB = io.imread("rgb_sa.tif", plugin = "tifffile")
+imRGB = io.imread("../imagenes/vuelo1/rgb_sa.tif", plugin = "tifffile")
 imRGB = imRGB[:,:,0:3]
 
 #Image information
@@ -42,7 +42,7 @@ if SUMMARY:
 	print "Transformed NIR"
 	print "--------------------------"
 	print "Data type: ", newNIR.dtype
-	newNIR.dtype = "uint8"
+	#newNIR.dtype = "uint8" # Buggy line: This trasnform multiples by 8 the channels 
 	print "Changed type: ", newNIR.dtype
 	print "Dimensions: ", newNIR.shape
 	print "Elements in the array: ", newNIR.size
@@ -56,7 +56,7 @@ if SAVE_NIR:
 			R = newNIR[x,y,0]
 			G = newNIR[x,y,1]
 			B = newNIR[x,y,1]
-			line = "The point ("+str(x)+","+str(y)+") has RGB equal to: ("+str(R)+","+str(G)+","+str(B)+")" 
+			line = "The point ("+str(x)+","+str(y)+") has RGB equal to: ("+str(R)+","+str(G)+","+str(B)+")"
 			if R != 0 and G != 0 and B != 0:
 				print line
 			f.write(line)
@@ -74,7 +74,7 @@ if SAVE_RGB:
 			R = imRGB[x,y,0]
 			G = imgRGB[x,y,1]
 			B = imgRGB[x,y,1]
-			line = "The point ("+str(x)+","+str(y)+") has RGB equal to: ("+str(R)+","+str(G)+","+str(B)+")" 
+			line = "The point ("+str(x)+","+str(y)+") has RGB equal to: ("+str(R)+","+str(G)+","+str(B)+")"
 			if R != 0 and G != 0 and B != 0:
 				print line
 			f.write(line)
@@ -90,3 +90,5 @@ if VIEW_NIR:
 if VIEW_RGB:
 	io.imshow(imNIR)
 	io.show()
+
+print "Done"
