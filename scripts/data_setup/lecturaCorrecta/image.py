@@ -4,11 +4,23 @@ from skimage import color as color
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.misc as sp
+import mysql.connector as connector
+
+# Database initialization ###########
+imagenes = connector.MySQLConnection(user = "root", password = "root", host = "localhost", database = "imagenes")
+cursor = imagenes.cursor()
+
+cursor.execute("DROP TABLE IF EXISTS training")
+create_query = "CREATE TABLE training (red float,green float,blue float,red_nir float)"
+cursor.execute(create_query)
+#####################################
+
 
 SUMMARY = True
 SAVE_NIR = False
 SAVE_RGB = False
-SAVE_FOR_TRAINING = True
+SAVE_FOR_TRAINING_TEXT = False
+SAVE_FOR_TRAINING_DB = True
 VIEW_NIR = False
 VIEW_RGB = False
 
@@ -84,7 +96,7 @@ if SAVE_RGB:
 	f.close()
 	print "Done with RGB"
 
-if SAVE_FOR_TRAINING:
+if SAVE_FOR_TRAINING_TEXT:
 	f = open("training.txt","w")
 	for x in range(newNIR.shape[0]):
 		for y in range(newNIR.shape[1]):
@@ -99,6 +111,28 @@ if SAVE_FOR_TRAINING:
 			f.write("\n")
 
 	f.close()
+	print "Done saving for training"
+
+if SAVE_FOR_TRAINING_DB:
+	cursor.execute("SELECT COUNT(*) FROM training")
+	print "Initial number of values: ", cursor.fetchall()[0][0]
+
+	for x in range(newNIR.shape[0]):
+		for y in range(newNIR.shape[1]):
+			R = imRGB[x,y,0]
+			G = imRGB[x,y,1]
+			B = imRGB[x,y,2]
+			Rnir = newNIR[x,y,0]
+
+			try:
+				cursor.execute("""INSERT INTO training VALUES (%s,%s,%s,%s)""",(R,G,B,Rnir))
+				imagenes.commit()
+			except:
+				imagenes.rollback()
+		
+	cursor.execute("SELECT COUNT(*) FROM training")
+	print "Final number of values: ", cursor.fetchall()[0][0]
+
 	print "Done saving for training"
 
 if VIEW_NIR:
