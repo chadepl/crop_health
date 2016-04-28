@@ -8,6 +8,7 @@ import scipy.misc as sp
 SUMMARY = True
 SAVE_NIR = False
 SAVE_RGB = False
+SAVE_FOR_TRAINING = True
 VIEW_NIR = False
 VIEW_RGB = False
 
@@ -42,7 +43,7 @@ if SUMMARY:
 	print "Transformed NIR"
 	print "--------------------------"
 	print "Data type: ", newNIR.dtype
-	#newNIR.dtype = "uint8" # Buggy line: This trasnform multiples by 8 the channels 
+	#newNIR.dtype = "uint8" # Buggy line: This trasnform multiples by 8 the channels
 	print "Changed type: ", newNIR.dtype
 	print "Dimensions: ", newNIR.shape
 	print "Elements in the array: ", newNIR.size
@@ -55,7 +56,7 @@ if SAVE_NIR:
 		for y in range(newNIR.shape[1]):
 			R = newNIR[x,y,0]
 			G = newNIR[x,y,1]
-			B = newNIR[x,y,1]
+			B = newNIR[x,y,2]
 			line = "The point ("+str(x)+","+str(y)+") has RGB equal to: ("+str(R)+","+str(G)+","+str(B)+")"
 			if R != 0 and G != 0 and B != 0:
 				print line
@@ -72,8 +73,8 @@ if SAVE_RGB:
 	for x in range(imRGB.shape[0]):
 		for y in range(imRGB.shape[1]):
 			R = imRGB[x,y,0]
-			G = imgRGB[x,y,1]
-			B = imgRGB[x,y,1]
+			G = imRGB[x,y,1]
+			B = imRGB[x,y,2]
 			line = "The point ("+str(x)+","+str(y)+") has RGB equal to: ("+str(R)+","+str(G)+","+str(B)+")"
 			if R != 0 and G != 0 and B != 0:
 				print line
@@ -82,6 +83,23 @@ if SAVE_RGB:
 
 	f.close()
 	print "Done with RGB"
+
+if SAVE_FOR_TRAINING:
+	f = open("training.txt","w")
+	for x in range(newNIR.shape[0]):
+		for y in range(newNIR.shape[1]):
+			R = imRGB[x,y,0]
+			G = imRGB[x,y,1]
+			B = imRGB[x,y,2]
+			Rnir = newNIR[x,y,0]
+			line = str(R)+","+str(G)+","+str(B)+","+str(Rnir)
+			if R != 0 and G != 0 and B != 0:
+				#print line
+			f.write(line)
+			f.write("\n")
+
+	f.close()
+	print "Done saving for training"
 
 if VIEW_NIR:
 	io.imshow(imNIR)
