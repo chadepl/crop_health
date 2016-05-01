@@ -5,15 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.misc as sp
 import mysql.connector as connector
+import sys
 
-# Database initialization ###########
-imagenes = connector.MySQLConnection(user = "root", password = "root", host = "localhost", database = "imagenes")
-cursor = imagenes.cursor()
 
-cursor.execute("DROP TABLE IF EXISTS training")
-create_query = "CREATE TABLE training (red float,green float,blue float,red_nir float)"
-cursor.execute(create_query)
-#####################################
 
 
 SUMMARY = True
@@ -47,7 +41,7 @@ if SUMMARY:
 	print "Dimensions: ", imNIR.shape
 	print "Elements in the array: ", imNIR.size
 
-	newNIR = transform.resize(imNIR,imRGB.shape)
+	newNIR = transform.resize(imNIR,imRGB.shape,preserve_range=True)
 
 	print "***************************"
 	print "***************************"
@@ -59,6 +53,8 @@ if SUMMARY:
 	print "Changed type: ", newNIR.dtype
 	print "Dimensions: ", newNIR.shape
 	print "Elements in the array: ", newNIR.size
+	print "***************************"
+	print "\n"
 
 #Save NIR in text file
 
@@ -106,6 +102,7 @@ if SAVE_FOR_TRAINING_TEXT:
 			Rnir = newNIR[x,y,0]
 			line = str(R)+","+str(G)+","+str(B)+","+str(Rnir)
 			if R != 0 and G != 0 and B != 0:
+				pass
 				#print line
 			f.write(line)
 			f.write("\n")
@@ -114,6 +111,18 @@ if SAVE_FOR_TRAINING_TEXT:
 	print "Done saving for training"
 
 if SAVE_FOR_TRAINING_DB:
+
+	# Database initialization ###########
+	imagenes = connector.MySQLConnection(user = "root", password = "root", host = "localhost", database = "imagenes")
+	cursor = imagenes.cursor()
+
+	cursor.execute("DROP TABLE IF EXISTS training")
+	create_query = "CREATE TABLE training (red float,green float,blue float,red_nir float)"
+	cursor.execute(create_query)
+
+	print "Done initializing connection with db"
+	#####################################
+
 	cursor.execute("SELECT COUNT(*) FROM training")
 	print "Initial number of values: ", cursor.fetchall()[0][0]
 
@@ -125,11 +134,14 @@ if SAVE_FOR_TRAINING_DB:
 			Rnir = newNIR[x,y,0]
 
 			try:
-				cursor.execute("""INSERT INTO training VALUES (%s,%s,%s,%s)""",(R,G,B,Rnir))
+				cursor.execute("""INSERT INTO training VALUES (%s,%s,%s,%s)""",(float(R),float(G),float(B),float(Rnir)))
 				imagenes.commit()
-			except:
-				imagenes.rollback()
-		
+			except mysql.connector.ProgrammingError as err:
+			    if err.errno == errorcode.ER_SYNTAX_ERROR:
+			    	print("Check your syntax!")
+			    else:
+			    	print("Error: {}".format(err))
+
 	cursor.execute("SELECT COUNT(*) FROM training")
 	print "Final number of values: ", cursor.fetchall()[0][0]
 
