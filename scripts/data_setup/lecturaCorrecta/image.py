@@ -7,9 +7,6 @@ import scipy.misc as sp
 import mysql.connector as connector
 import sys
 
-
-
-
 SUMMARY = True
 SAVE_NIR = False
 SAVE_RGB = False
@@ -126,6 +123,9 @@ if SAVE_FOR_TRAINING_DB:
 	cursor.execute("SELECT COUNT(*) FROM training")
 	print "Initial number of values: ", cursor.fetchall()[0][0]
 
+	insert_many_values = ""
+	i = 0
+
 	for x in range(newNIR.shape[0]):
 		for y in range(newNIR.shape[1]):
 			R = imRGB[x,y,0]
@@ -133,14 +133,22 @@ if SAVE_FOR_TRAINING_DB:
 			B = imRGB[x,y,2]
 			Rnir = newNIR[x,y,0]
 
-			try:
-				cursor.execute("""INSERT INTO training VALUES (%s,%s,%s,%s)""",(float(R),float(G),float(B),float(Rnir)))
-				imagenes.commit()
-			except mysql.connector.ProgrammingError as err:
-			    if err.errno == errorcode.ER_SYNTAX_ERROR:
-			    	print("Check your syntax!")
-			    else:
-			    	print("Error: {}".format(err))
+			insert_many_values += "(" + str(R) + "," + str(G) + "," + str(B) + "," + str(G) + "),"
+			i = i +1
+			print i
+
+			if i == 50 or (x == newNIR.shape[0] and y == newNIR.shape[1]):
+				try:
+					insert_many_values = insert_many_values[:-1]
+					cursor.execute("INSERT INTO training VALUES " + insert_many_values + ";")
+					imagenes.commit()
+					insert_many_values = ""
+					i = 0
+				except mysql.connector.ProgrammingError as err:
+				    if err.errno == errorcode.ER_SYNTAX_ERROR:
+				    	print("Check your syntax!")
+				    else:
+				    	print("Error: {}".format(err))
 
 	cursor.execute("SELECT COUNT(*) FROM training")
 	print "Final number of values: ", cursor.fetchall()[0][0]
@@ -148,11 +156,13 @@ if SAVE_FOR_TRAINING_DB:
 	print "Done saving for training"
 
 if VIEW_NIR:
-	io.imshow(imNIR)
-	io.show()
+	#io.imshow(imNIR)
+	#io.show()
+	pass
 
 if VIEW_RGB:
-	io.imshow(imNIR)
-	io.show()
+	#io.imshow(imNIR)
+	#io.show()
+	pass
 
 print "Done"
