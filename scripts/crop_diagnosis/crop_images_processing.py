@@ -27,8 +27,8 @@ def computeNDVI(r,g,b,nir):
 #imagenes = connector.MySQLConnection(user = "root", password = "root", host = "192.168.0.10", database = "imagenes") #192.168.0.10
 #cursor = imagenes.cursor()
 
-img_gray = io.imread("IMG_3416.JPG",as_grey=True)
-img = io.imread("IMG_3416.JPG")
+img_gray = io.imread("cliente/IMG_3416.JPG",as_grey=True)
+img = io.imread("cliente/IMG_3416.JPG")
 
 thresh = threshold_otsu(img_gray)
 binary = img_gray < thresh
@@ -45,6 +45,8 @@ for i in range(binary_opened.shape[0]):
 			nir = getPred(r,g,b)
 			color = computeNDVI(r,g,b,nir)
 			img[i,j,0] ,img[i,j,1] ,img[i,j,2]  = color
+
+io.imsave("resultados/img_ind1.jpg",img)
 
 fig = plt.figure(figsize=(12,3.75))
 ax1 = plt.subplot(1,4,1,adjustable="box-forced")
@@ -77,4 +79,4 @@ print binary_opened.dtype
 
 
 plt.show()
-fig.savefig("result.jpeg")
+fig.savefig("resultados/result.jpeg")
