@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np 
+import numpy as np
 import skimage.io as io
 from skimage.filter import threshold_otsu
 from skimage.morphology import erosion, dilation, opening, closing, white_tophat
@@ -9,9 +9,10 @@ import mysql.connector as connector
 import sys
 
 def getPred(r,g,b):
-	#cursor.execute("SELECT * FROM predicted_values")
-	#nir = cursor.fetchall()
-	nir = np.random.randint(0,255)
+	query = "select * from predicted_values where red="+str(r)+" and green="+str(g)+" and blue=15"+str(b)
+	cursor.execute(query)
+	nir = cursor.fetchall()
+	#nir = np.random.randint(0,255)
 	return nir
 
 def computeNDVI(r,g,b,nir):
@@ -24,8 +25,8 @@ def computeNDVI(r,g,b,nir):
 		color = [67,241,12]
 	return color
 
-#imagenes = connector.MySQLConnection(user = "root", password = "root", host = "192.168.0.10", database = "imagenes") #192.168.0.10
-#cursor = imagenes.cursor()
+imagenes = connector.MySQLConnection(user = "root", password = "root", host = "192.168.0.10", database = "imagenes") #192.168.0.10
+cursor = imagenes.cursor()
 
 img_gray = io.imread("cliente/IMG_3416.JPG",as_grey=True)
 img = io.imread("cliente/IMG_3416.JPG")
@@ -39,9 +40,9 @@ binary_opened = closing(binary,selem)
 for i in range(binary_opened.shape[0]):
 	for j in range(binary_opened.shape[1]):
 		if binary_opened[i,j] == True:
-			r = img[i,j,0] 
-			g = img[i,j,1] 
-			b = img[i,j,2] 
+			r = img[i,j,0]
+			g = img[i,j,1]
+			b = img[i,j,2]
 			nir = getPred(r,g,b)
 			color = computeNDVI(r,g,b,nir)
 			img[i,j,0] ,img[i,j,1] ,img[i,j,2]  = color
