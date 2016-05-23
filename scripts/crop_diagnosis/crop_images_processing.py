@@ -9,14 +9,15 @@ import mysql.connector as connector
 import sys
 
 def getPred(r,g,b):
-	query = "select * from predicted_values where red="+str(r)+" and green="+str(g)+" and blue=15"+str(b)
+	query = "select * from predicted_values where red="+str(r)+" and green="+str(g)+" and blue="+str(b)
 	cursor.execute(query)
-	nir = cursor.fetchall()
+	nir = cursor.fetchall()[0][3]
 	#nir = np.random.randint(0,255)
 	return nir
 
 def computeNDVI(r,g,b,nir):
 	index = (nir-r)/(nir+r)
+	color = [0,0,0]
 	if index < -0.5:
 		color = [241,52,12]
 	elif index < 0.5:
@@ -37,6 +38,8 @@ binary = img_gray < thresh
 selem = disk(6)
 binary_opened = closing(binary,selem)
 
+print "Beginning index calculation"
+
 for i in range(binary_opened.shape[0]):
 	for j in range(binary_opened.shape[1]):
 		if binary_opened[i,j] == True:
@@ -44,8 +47,10 @@ for i in range(binary_opened.shape[0]):
 			g = img[i,j,1]
 			b = img[i,j,2]
 			nir = getPred(r,g,b)
-			color = computeNDVI(r,g,b,nir)
-			img[i,j,0] ,img[i,j,1] ,img[i,j,2]  = color
+			color_out = computeNDVI(r,g,b,nir)
+			img[i,j,0] ,img[i,j,1] ,img[i,j,2]  = color_out
+
+print "Done"
 
 io.imsave("resultados/img_ind1.jpg",img)
 
