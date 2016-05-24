@@ -42,7 +42,7 @@ Son dos pasos principales para ejecutar el aplicativo: (1) entrenamiento del mod
 
 ### Entrenamiento del modelo
 
-Esta sección no está pensada para los usuarios finales del aplicativo. Más bien se presenta como una alternativa para las personas que quieran generar su propio modelo predictivo y conectarlo a su propia base de datos.
+Esta sección no está pensada para los usuarios finales del aplicativo. Sin embargo, el procedimiento puede ser replicado utilizando el script "imagenes.R" disponible en la carpeta scripts. El procedimiento de pasar la información de los ortoplanos a una base de datos, entrenar el modelo y guardar la información de las predicciones en la base de datos puede tomó más de 48 horas en un servidor potente. En caso de querer observar el funcionamiento del aplicativo en vivo las peticiones para el cálculo del NDVI pueden ser redirigidas al servidor original. Por favor comunicarse con nosotros si este es el caso. 
 
 ### Cálculo del índice NDVI
 
