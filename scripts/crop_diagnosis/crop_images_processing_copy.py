@@ -8,7 +8,7 @@ from skimage.morphology import erosion, dilation, opening, closing, white_tophat
 from skimage.morphology import black_tophat, skeletonize, convex_hull_image
 from skimage.morphology import disk
 import mysql.connector as connector
-import sys
+import sys, os
 
 def getPred(r,g,b,dict):
 	nir = 0
@@ -31,17 +31,56 @@ def computeNDVI(r,g,b,nir):
 def computeIndex(r,g,b,nir):
 	return float(nir-r)/float(nir+r)
 
+############
+#Argumentos#
+############
+
+## -1 si se usa Otsu automatico o un valor entre 0 y 1 si se desea establecer manualmente
+threshold = float(sys.argv[1])
+print threshold
+
+## Offset para el threshold. 0 si no se desea offset(Ideal cuando se usa Otsu y se desea ajustar sobre este)
+offset = float(sys.argv[2])
+print offset
+
+## Ruta donde se encuentra la imagen a ser procesada
+ruta_imagen = sys.argv[3]
+print ruta_imagen
+if ruta_imagen == "default":
+	path_original = "cliente/prueba/IMG_prueba1.JPG"
+else:
+	path_original = ruta_imagen
+if not os.path.exists(path_original): print "No existe el directorio o la imagen"
+
+## Ruta del folder de destino de los resultados
+ruta_destino = sys.argv[4]
+print ruta_destino
+if ruta_destino == "default":
+	path_destino = "resultados"
+else:
+	path_destino = ruta_destino
+if not os.path.exists(path_destino): print "No existe el directorio de destino"
+
+## Nombre general de la imagen resultado (prefijo sobre el que se anaden los demas indicadores)
+nombre_resultado = sys.argv[5]
+
+
+
 fetched_values = {} #New
 index_values = []
 
 imagenes = connector.MySQLConnection(user = "root", password = "root", host = "192.168.0.10", database = "imagenes") #192.168.0.10
 cursor = imagenes.cursor()
 
-img_gray = io.imread("cliente/IMG_3416.JPG",as_grey=True)
-img = io.imread("cliente/IMG_3416.JPG")
+img_gray = io.imread(path_original,as_grey=True)
+img = io.imread(path_original)
 
-thresh = threshold_otsu(img_gray)
-binary = img_gray < thresh
+if threshold == -1:
+	thresh = threshold_otsu(img_gray)
+else:
+	thresh = threshold
+
+binary = img_gray < thresh + offset
 
 selem = disk(6)
 binary_opened = closing(binary,selem)
@@ -63,7 +102,7 @@ for i in range(binary_opened.shape[0]):
 			index = computeIndex(r,g,b,nir)
 			index_values.append(index)
 
-cNorm = colors.Normalize(vmin=min(index_values), vmax=max(index_values))
+cNorm = colors.Normalize(vmin=np.percentile(index_values,10), vmax=np.percentile(index_values,90))
 scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=plt.get_cmap('RdYlGn'))
 
 for i in range(binary_opened.shape[0]):
@@ -79,14 +118,14 @@ for i in range(binary_opened.shape[0]):
 	completed_percent = completed_percent + (binary_opened.shape[1]/float(total_size))*100 #New
 	if (completed_percent - reference_percent_1) >=20:
 		reference_percent_1 = completed_percent
-		io.imsave("resultados/img_ind"+str(int(round(completed_percent)))+".jpg",img)
+		io.imsave(os.path.join(path_destino,nombre_resultado+"_"+str(int(round(completed_percent)))+".jpg"),img) #img_ind_prueba1
 	if (completed_percent - reference_percent) >=5:
 		print str(completed_percent)+"%" #New
 		reference_percent = completed_percent
 
 print "Done"
 
-io.imsave("resultados/img_3416_diagnosed.jpg",img)
+io.imsave(os.path.join(path_destino,nombre_resultado+"_diagnosed.jpg"),img)
 
 #fig = plt.figure(figsize=(12,3.75))
 #ax1 = plt.subplot(1,4,1,adjustable="box-forced")
@@ -117,4 +156,4 @@ io.imsave("resultados/img_3416_diagnosed.jpg",img)
 
 
 #plt.show()
-#ßfig.savefig("resultados/result.jpeg")
+#fig.savefig("resultados/result.jpeg")
